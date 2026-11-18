@@ -52,7 +52,7 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-[13px] text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 pb-24 pt-5 text-[13px] text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:pb-5 lg:pr-48">
           <p>© 2026 Lumen. Designed &amp; built by Jayashree Mondal, Kolkata, India.</p>
           <p>MIT licensed · No ads, no trackers</p>
         </div>

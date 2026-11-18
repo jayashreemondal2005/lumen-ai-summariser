@@ -305,9 +305,9 @@ export function TaraWidget() {
                     <ArrowUp className="size-4" />
                   </button>
                 </div>
-                <div className="mt-2 flex items-center justify-between px-1 text-[11px] text-ink-3">
-                  <span>Tara can make mistakes. Answers come from the Help Center.</span>
-                  <button type="button" onClick={() => setView("ticket")} className="font-medium text-ink-2 hover:text-ink">
+                <div className="mt-2 flex items-center justify-between gap-3 px-1 text-[11px] text-ink-3">
+                  <span>Tara can make mistakes.</span>
+                  <button type="button" onClick={() => setView("ticket")} className="whitespace-nowrap font-medium text-ink-2 hover:text-ink">
                     Talk to a person
                   </button>
                 </div>
