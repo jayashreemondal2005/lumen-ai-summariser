@@ -87,8 +87,34 @@ export function truncateText(text: string, max = MAX_TEXT_CHARS): { text: string
   return { text: (lastBreak > max * 0.7 ? cut.slice(0, lastBreak) : cut).trimEnd(), truncated: true };
 }
 
-export function extractReadable(html: string, pageUrl: string): ExtractedPage {
+function plainTextPage(raw: string, url: URL): ExtractedPage {
+  const text = raw.replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  const words = countWords(text);
+  if (words < 40) {
+    throw new ExtractError("NO_CONTENT", "We couldn't find enough readable text on this page.");
+  }
+  const { text: finalText, truncated } = truncateText(text);
+  const firstLine = text.split("\n").find((l) => l.trim())?.trim() ?? url.hostname;
+  return {
+    title: firstLine.slice(0, 120),
+    siteName: url.hostname.replace(/^www\./, ""),
+    byline: null,
+    publishedTime: null,
+    lang: null,
+    description: null,
+    text: finalText,
+    wordCount: words,
+    readingMinutes: Math.max(1, Math.round(words / WORDS_PER_MINUTE)),
+    truncated,
+  };
+}
+
+export function extractReadable(html: string, pageUrl: string, contentType = "text/html"): ExtractedPage {
   const url = new URL(pageUrl);
+  // Plain-text documents (or bodies with no markup at all) skip the DOM.
+  if (contentType.toLowerCase().startsWith("text/plain") || !/<[a-z!/][^>]*>/i.test(html.slice(0, 5000))) {
+    return plainTextPage(html, url);
+  }
   const { document } = parseHTML(html);
   const doc = document as unknown as Document;
 
@@ -119,20 +145,23 @@ export function extractReadable(html: string, pageUrl: string): ExtractedPage {
   if (text.length < 200) {
     // Fallback: strip obvious chrome and read the main region.
     doc.querySelectorAll(NOISE_SELECTOR).forEach((el) => el.remove());
+    let body: Element | null = null;
+    try {
+      body = doc.body;
+    } catch {
+      body = null; // linkedom throws when there is no <html> element
+    }
     const main =
       doc.querySelector("main") ||
       doc.querySelector("article") ||
       doc.querySelector("[role='main']") ||
       doc.querySelector("#content, .content, #main") ||
-      doc.body;
+      body;
     if (main) {
       const fromBlocks = blocksToText(main);
       text = fromBlocks.length >= 200 ? fromBlocks : squash(main.textContent || "");
     }
   }
-
-  // Plain-text documents
-  if (!text && /^\s*[^<]/.test(html)) text = squash(html);
 
   const words = countWords(text);
   if (words < 40) {

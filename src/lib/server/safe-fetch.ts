@@ -48,8 +48,16 @@ export interface SafeFetchOptions {
   timeoutMs?: number;
   maxBytes?: number;
   maxRedirects?: number;
-  /** Injected for tests. */
+  /** DNS resolver used by the guarded lookup. Injected in tests. */
   lookupImpl?: typeof dns.lookup;
+  /**
+   * Test seams only (never set in app code): replace the URL validator for
+   * the first hop and the connect-time lookup, so the fetch loop can be
+   * exercised against a local server. Redirect targets are always checked
+   * with the real validator.
+   */
+  firstHopValidator?: (u: string) => URL;
+  connectLookup?: LookupFunction;
 }
 
 const USER_AGENT =
@@ -246,12 +254,12 @@ export async function safeFetchPage(input: string, opts: SafeFetchOptions = {}):
   const timeoutMs = opts.timeoutMs ?? 9000;
   const maxBytes = opts.maxBytes ?? 3_000_000;
   const maxRedirects = opts.maxRedirects ?? 5;
-  const lookup = createGuardedLookup(opts.lookupImpl);
+  const lookup = opts.connectLookup ?? createGuardedLookup(opts.lookupImpl);
   const signal = AbortSignal.timeout(timeoutMs);
 
   let current: URL;
   try {
-    current = validateTargetUrl(input);
+    current = (opts.firstHopValidator ?? validateTargetUrl)(input);
   } catch (err) {
     throw mapNetworkError(err);
   }

@@ -75,7 +75,7 @@ export async function POST(req: Request) {
         const page = await safeFetchPage(url, { timeoutMs: 9000 });
 
         send({ type: "stage", stage: "extracting" });
-        const extracted = extractReadable(page.html, page.finalUrl);
+        const extracted = extractReadable(page.html, page.finalUrl, page.contentType);
 
         send({ type: "stage", stage: "summarising" });
         const { content, model } = await summarisePage(extracted, page.finalUrl, length);

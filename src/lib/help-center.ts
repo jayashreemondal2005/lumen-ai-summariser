@@ -228,7 +228,7 @@ Deleting your account also withdraws your consent to processing.`,
     category: "privacy",
     title: "What data Lumen stores",
     summary: "As little as possible, and never your raw IP address.",
-    keywords: ["privacy", "data", "store", "collect", "personal", "ip", "tracking", "cookies", "sell", "dpdp", "gdpr"],
+    keywords: ["privacy", "data", "store", "collect", "personal", "ip", "tracking", "tracked", "cookies", "sell", "sold", "share my data", "dpdp", "gdpr"],
     body: `- Guests: nothing on our servers except a consent record and anonymous rate-limit counters. Your history stays in your browser.
 - Account holders: your email, name and the summaries you save.
 - Support tickets: the name, email and message you send.
@@ -337,7 +337,7 @@ export function searchHelp(query: string, limit = 3): Array<{ article: HelpArtic
       if (kws.includes(t)) score += 2.5;
       if (body.includes(t)) score += 0.6;
     }
-    for (const k of article.keywords) if (k.includes(" ") && qs.includes(k)) score += 4;
+    for (const k of article.keywords) if (k.includes(" ") && qs.includes(k)) score += 3;
     return { article, score };
   })
     .filter((r) => r.score >= 2)
