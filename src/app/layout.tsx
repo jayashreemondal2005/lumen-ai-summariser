@@ -62,10 +62,10 @@ const themeScript = `(function(){try{var t=localStorage.getItem("lumen.theme");i
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={`${ui.variable} ${read.variable}`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
+      {/* No explicit <head> children: hosts that inject markup into <head>
+          (Netlify adds a comment and whitespace) can't break hydration. */}
       <body className="min-h-dvh flex flex-col bg-bg text-ink antialiased">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[100] focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:shadow-pop"

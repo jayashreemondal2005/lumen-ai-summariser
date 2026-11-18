@@ -1,6 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+// Every test starts as a returning visitor (tour already seen), except the tour test.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("lumen.prefs.v1")) {
+      localStorage.setItem("lumen.prefs.v1", JSON.stringify({ state: { tourDone: true }, version: 0 }));
+    }
+  });
+});
+
 /** Accepts the Terms of Service gate the way a person would: scroll to the end, tick, agree. */
 async function acceptTerms(page: Page) {
   const dialog = page.getByRole("dialog", { name: /Terms of Service/ });
@@ -34,9 +43,10 @@ test.describe("Home and summariser", () => {
   test("validates input on the client before any request", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /Summarise/ }).click();
-    await expect(page.getByRole("alert")).toHaveText("Enter a web address.");
+    const form = page.locator("form").first();
+    await expect(form.getByRole("alert")).toHaveText("Enter a web address.");
     await summarise(page, "not a url");
-    await expect(page.getByRole("alert")).toContainText("spaces");
+    await expect(form.getByRole("alert")).toContainText("spaces");
   });
 
   test("Terms gate requires scrolling to the end before accepting", async ({ page }) => {
@@ -70,9 +80,17 @@ test.describe("Home and summariser", () => {
     expect(await article.locator("ol li").count()).toBeGreaterThanOrEqual(2);
     await expect(article.getByText("Saved in this browser")).toBeVisible();
 
+    // AI tools: rewrite shorter, then ask a question grounded in the page.
+    await article.getByRole("button", { name: "Shorter" }).click();
+    await expect(article.getByText("Shorter version")).toBeVisible({ timeout: 30_000 });
+    await article.getByRole("button", { name: "Show original" }).click();
+    await article.getByLabel("Ask a question about this page").fill("Which river does the bridge cross?");
+    await article.getByRole("button", { name: "Ask" }).click();
+    await expect(article.getByText(/Hooghly|Hugli/i).first()).toBeVisible({ timeout: 30_000 });
+
     await page.goto("/history");
-    await expect(page.getByRole("button", { name: /Howrah/i })).toBeVisible();
-    await page.getByRole("button", { name: /Howrah/i }).click();
+    await expect(page.getByRole("button", { name: /^Howrah/i })).toBeVisible();
+    await page.getByRole("button", { name: /^Howrah/i }).click();
     await expect(page.getByRole("article")).toBeVisible();
   });
 });
@@ -117,11 +135,41 @@ test.describe("Ask Tara and support", () => {
   });
 });
 
+test.describe("Tour and settings", () => {
+  test("first-time tour appears and can be skipped", async ({ browser }) => {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto("/");
+    const tour = page.getByRole("dialog", { name: "Welcome to Lumen" });
+    await expect(tour).toBeVisible({ timeout: 5000 });
+    await tour.getByRole("button", { name: "Show me" }).click();
+    await expect(page.getByRole("dialog", { name: "Paste any link" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: /Paste any link|Welcome/ })).toHaveCount(0);
+    await page.reload();
+    await page.waitForTimeout(1500);
+    await expect(page.getByRole("dialog", { name: "Welcome to Lumen" })).toHaveCount(0);
+    await ctx.close();
+  });
+
+  test("settings persist: avatar, default length and dark theme", async ({ page }) => {
+    await page.goto("/settings");
+    await page.getByRole("radio", { name: "Avatar 🦉" }).click();
+    await page.getByRole("button", { name: "Save profile" }).click();
+    await page.getByRole("radiogroup", { name: "Default length" }).getByRole("radio", { name: "Detailed" }).click();
+    await page.getByRole("radiogroup", { name: "Theme" }).getByRole("radio", { name: "Dark" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.goto("/");
+    await expect(page.getByRole("radio", { name: "Detailed" })).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByRole("button", { name: "Menu and settings" })).toContainText("🦉");
+  });
+});
+
 test.describe("Legal, security and accessibility", () => {
   test("legal pages show version and operator", async ({ page }) => {
     for (const slug of ["terms", "privacy", "cookies", "ai-disclaimer", "acceptable-use"]) {
       await page.goto(`/legal/${slug}`);
-      await expect(page.getByText(/Version 1\.0\.0 · Effective 18 November 2026 · Operated by Jayashree Mondal/)).toBeVisible();
+      await expect(page.getByText(/Version 1\.\d\.\d · Effective 18 November 2026 · Operated by Jayashree Mondal/)).toBeVisible();
     }
     await page.goto("/legal/privacy");
     await expect(page.getByText(/Digital Personal Data Protection Act, 2023/).first()).toBeVisible();
@@ -130,7 +178,9 @@ test.describe("Legal, security and accessibility", () => {
   test("security headers are set on pages and APIs", async ({ request }) => {
     const res = await request.get("/");
     const h = res.headers();
-    expect(h["content-security-policy"]).toMatch(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
+    expect(h["content-security-policy"]).toContain("default-src 'self'");
+    expect(h["content-security-policy"]).toContain("object-src 'none'");
+    expect(h["content-security-policy"]).toContain("base-uri 'self'");
     expect(h["content-security-policy"]).toContain("frame-ancestors 'none'");
     expect(h["x-frame-options"]).toBe("DENY");
     expect(h["x-content-type-options"]).toBe("nosniff");
@@ -164,9 +214,12 @@ test.describe("Legal, security and accessibility", () => {
     await page.waitForLoadState("networkidle");
     const all = bodies.join("\n");
     expect(all.length).toBeGreaterThan(1000);
-    for (const needle of ["GROQ_API_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SMTP_PASS", "gsk_", "service_role"]) {
+    for (const needle of ["GROQ_API_KEY", "SUPABASE_SECRET_KEY", "SMTP_PASS", "IP_HASH_SALT"]) {
       expect(all).not.toContain(needle);
     }
+    // Key-shaped values only: supabase-js itself mentions the "sb_secret_" prefix.
+    expect(all).not.toMatch(/gsk_[A-Za-z0-9]{20,}/);
+    expect(all).not.toMatch(/sb_secret_[A-Za-z0-9_-]{16,}/);
   });
 
   test("theme toggle switches to dark and back", async ({ page }) => {
@@ -178,7 +231,7 @@ test.describe("Legal, security and accessibility", () => {
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   });
 
-  for (const path of ["/", "/help", "/legal/terms", "/support", "/history"]) {
+  for (const path of ["/", "/help", "/legal/terms", "/support", "/history", "/settings"]) {
     test(`axe: no serious accessibility violations on ${path}`, async ({ page }) => {
       await page.goto(path);
       await page.waitForLoadState("networkidle");

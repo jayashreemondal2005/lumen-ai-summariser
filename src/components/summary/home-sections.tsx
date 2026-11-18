@@ -43,6 +43,9 @@ export function RecentStrip() {
     };
   }, [user, guest]);
 
+  // Guests' history is local, so there is nothing to wait for: render nothing
+  // until it's read (no placeholder that would shift the layout).
+  if (items === null && !user) return null;
   if (items === null) {
     return (
       <div className="mt-12 grid gap-3 sm:grid-cols-3" aria-hidden>

@@ -17,7 +17,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
-    { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 860 } } },
+    { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 860 } }, grepInvert: /@mobile/ },
     { name: "mobile-chromium", use: { ...devices["Pixel 7"] }, grep: /@mobile/ },
   ],
   webServer: process.env.E2E_BASE_URL

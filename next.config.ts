@@ -42,7 +42,7 @@ const securityHeaders = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=(), interest-cohort=()",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   },
   { key: "X-DNS-Prefetch-Control", value: "off" },
 ];
