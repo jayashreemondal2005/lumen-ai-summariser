@@ -75,7 +75,7 @@ function ToastProvider({ children }: { children: React.ReactNode }) {
       <div
         aria-live="polite"
         role="status"
-        className="pointer-events-none fixed inset-x-0 bottom-6 z-[90] flex flex-col items-center gap-2 px-4"
+        className="host-offset-toast pointer-events-none fixed inset-x-0 z-[90] flex flex-col items-center gap-2 px-4"
       >
         {toasts.map((t) => (
           <div
@@ -151,6 +151,31 @@ function ConsentSync() {
 /* Preferences: reading size and motion are applied to <html>          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Some hosts add their own floating badge (Netlify's free plan adds a
+ * 197x64 "Powered by Netlify" frame in the bottom-right corner). We measure it
+ * and expose its height as --host-badge so Tara and toasts sit above it.
+ */
+function HostBadgeOffset() {
+  useEffect(() => {
+    const root = document.documentElement;
+    const apply = () => {
+      const badge = document.getElementById("nl-badge-frame");
+      const h = badge ? Math.round(badge.getBoundingClientRect().height) : 0;
+      root.style.setProperty("--host-badge", h ? `${h + 8}px` : "0px");
+    };
+    apply();
+    const mo = new MutationObserver(apply);
+    mo.observe(document.body, { childList: true });
+    window.addEventListener("resize", apply);
+    return () => {
+      mo.disconnect();
+      window.removeEventListener("resize", apply);
+    };
+  }, []);
+  return null;
+}
+
 function PrefsSync() {
   const textSize = usePrefs((s) => s.textSize);
   const reduceMotion = usePrefs((s) => s.reduceMotion);
@@ -171,6 +196,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {children}
         <ConsentSync />
         <PrefsSync />
+        <HostBadgeOffset />
         <TermsGate />
       </ToastProvider>
     </AuthProvider>

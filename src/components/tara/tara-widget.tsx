@@ -134,7 +134,7 @@ export function TaraWidget() {
           type="button"
           data-tour="tara"
           onClick={() => setOpen(true)}
-          className="press fixed bottom-5 right-5 z-50 inline-flex items-center gap-2.5 rounded-full border border-line bg-surface py-1.5 pl-1.5 pr-4 text-sm font-medium text-ink shadow-pop hover:-translate-y-0.5"
+          className="press host-offset-bottom fixed right-5 z-50 inline-flex items-center gap-2.5 rounded-full border border-line bg-surface py-1.5 pl-1.5 pr-4 text-sm font-medium text-ink shadow-pop hover:-translate-y-0.5"
           aria-label="Ask Tara, the Lumen help assistant"
         >
           <TaraAvatar size={34} />
@@ -146,7 +146,7 @@ export function TaraWidget() {
         <section
           role="dialog"
           aria-label="Ask Tara"
-          className="animate-rise fixed inset-0 z-50 flex flex-col bg-surface sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(640px,calc(100dvh-40px))] sm:w-[400px] sm:rounded-2xl sm:border sm:border-line sm:shadow-pop"
+          className="tara-panel animate-rise fixed inset-0 z-50 flex flex-col bg-surface sm:inset-auto sm:right-5 sm:w-[400px] sm:rounded-2xl sm:border sm:border-line sm:shadow-pop"
         >
           <header className="flex items-center gap-3 border-b border-line px-4 py-3">
             <TaraAvatar size={36} />
@@ -272,7 +272,7 @@ export function TaraWidget() {
               </div>
 
               <form
-                className="border-t border-line p-3"
+                className="tara-panel-form border-t border-line p-3"
                 onSubmit={(e) => {
                   e.preventDefault();
                   ask(input);

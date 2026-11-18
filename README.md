@@ -29,12 +29,20 @@ A help assistant, **Ask Tara**, answers questions using only Lumen's Help Center
 
 **Summariser**
 - URL input that accepts what people type (`example.com/post`, full URLs, trailing spaces) with instant client-side checks.
-- Three lengths: Brief, Standard, Detailed.
+- Three lengths (Brief, Standard, Detailed), 16 output languages (English, Hindi, Bengali, Tamil, Telugu, Marathi and more, whatever the page's own language) and three writing styles (Balanced, Simple, Executive).
 - Live progress streamed from the server: fetching, finding the main content, writing the summary.
 - Result: title, TL;DR, summary, numbered key points, topic tags, reading time and word count.
-- Copy as text, download as Markdown, open the original.
+- Copy as text, download as Markdown, share, read aloud (browser speech, no extra data sent), open the original.
+- **Ask about this page:** follow-up questions answered only from the page, with up to three supporting quotes that are checked word for word against the page text.
+- **AI rewrite tools:** make a summary simpler, shorter, or translate it, with "Show original" to switch back.
 - Notices when a page was truncated, had little readable text, or contained hidden instructions aimed at AI.
 - Clear loading, empty and error states, with specific messages and a retry for every failure type.
+
+**Personalisation**
+- Settings: emoji avatar and colour, display name, theme (system, light, dark), larger reading text, reduced motion, default length, language and style, history on or off, export and clear browser data, consent status.
+- A skippable first-time product tour (spotlight, keyboard-friendly), replayable from Settings or the avatar menu.
+- Home shows recent summaries and a feature overview; History shows reading stats (summaries, words read for you, time saved).
+- Skeleton loaders for history, account, settings and answers; instant press feedback on every control; `/` jumps to the link box.
 
 **Accounts and guest mode**
 - Guest mode: everything works without signing up; history is kept in the browser (up to 50 items).
@@ -43,7 +51,7 @@ A help assistant, **Ask Tara**, answers questions using only Lumen's Help Center
 - Account page: download my data (JSON) and delete my account.
 
 **Ask Tara and support**
-- Answers grounded only in the in-app Help Center (20 articles), with links to the articles used.
+- Answers grounded only in the in-app Help Center (25 articles), with links to the articles used.
 - Escalation to a support ticket. The ticket is stored in Postgres and emailed to the support inbox; the user gets a branded confirmation email with the logo, a greeting, the app link and their ticket ID.
 - Anti-spam: rate limits per IP and per email, a honeypot field, a minimum fill time, link-count and keyword checks. All user text is HTML-escaped in emails and stripped of line breaks in headers.
 
@@ -62,8 +70,10 @@ Next.js route handlers on Netlify (Node.js runtime)
    ├─ url-guard.ts     scheme / port / host checks, private-IP blocking
    ├─ safe-fetch.ts    DNS checked at connect time, redirects re-validated, size + time limits
    ├─ extract.ts       Mozilla Readability on linkedom, structural fallback
-   ├─ summarise.ts     escaped prompt, Groq via Vercel AI SDK, strict JSON + zod
+   ├─ summarise.ts     escaped prompts, Groq via Vercel AI SDK, strict JSON + zod
+   │                    summaries, page Q&A (verified quotes), rewrites
    │                    (gpt-oss-120b → gpt-oss-20b → Gemini Flash-Lite if configured)
+   ├─ page-cache.ts    short-lived per-instance cache so follow-up questions don't refetch
    ├─ tara.ts          Help Center retrieval → grounded answer (same model chain)
    ├─ tickets + mailer Gmail SMTP, branded HTML emails
    └─ rate-limit.ts    Postgres fixed-window counter (in-memory fallback)
@@ -89,6 +99,7 @@ Supabase: Auth (email + password, Google) and Postgres
 - **Calm, neutral interface.** Neutral surfaces with two accents taken from the logo: cobalt `#2F5BEA` for actions and teal `#12B5A6` for highlights. No decorative gradients behind content.
 - **Typography does the work.** Instrument Sans for the interface and Source Serif 4 for the summary text, so a summary reads like an article, not a dashboard.
 - **Honest progress.** The loading state shows real server stages streamed as they happen, not a timer.
+- **Fast by default.** Every page is statically rendered and served from Netlify's CDN; only API calls run server code. Moving from per-request rendering to static pages cut page response times from 1.2–8 s to under 1 s in our measurements from Kolkata.
 - **Errors you can act on.** Each failure type (blocked address, 403, timeout, PDF, no readable text, AI busy, rate limit) has its own title, explanation and next step.
 - **Accessible by default.** Semantic landmarks, a skip link, visible focus rings, labelled controls, `aria-live` regions for progress and results, keyboard-operable length picker and dialogs, reduced-motion support, and WCAG AA colour contrast in both themes.
 - **Tara, used sparingly.** She appears on the help launcher, in the assistant, on the Help Center and on the 404 page, and nowhere else.
@@ -99,6 +110,9 @@ Supabase: Auth (email + password, Google) and Postgres
 **In the product**
 - **Summaries.** The server sends the page's readable text (up to about 16,000 characters), its URL, title and the chosen length to an AI model and asks for a fixed JSON shape: `title`, `tldr`, `summary`, `keyPoints`, `topics`, `contentType`, `quality` and `injectionDetected`. The default model is `openai/gpt-oss-120b` on Groq, with `openai/gpt-oss-20b` as a second choice. Google's free-tier `gemini-2.5-flash-lite` is used only if `GEMINI_API_KEY` is set and both Groq models fail.
 - **Validation.** The AI SDK validates the response against a zod schema, and Lumen validates it again with stricter rules (trimming, length limits, de-duplication). If a model returns something invalid, the next model in the chain is tried.
+- **Languages and styles.** The output language and writing style are passed as explicit parameters; the page can be in any language.
+- **Ask about this page.** The page text and question go to the model, which must answer only from the page, say when it can't, and return short supporting quotes. Lumen keeps only quotes that really appear in the page (case, spacing and punctuation normalised), so invented evidence is dropped.
+- **Rewrite.** Simpler, shorter and translated versions are generated from the summary alone (no page refetch), validated with the same schema.
 - **Ask Tara.** A small keyword retriever picks the most relevant Help Center articles; the model may answer only from those articles and must return the IDs it used, which are checked against the articles it was given. Greetings, "talk to a person" and questions with no matching article are handled without calling the model.
 - **Prompt-injection defences.** Page text and user questions are escaped (`<`, `>`, `&`) and wrapped in data tags, so they cannot close or forge the prompt structure; invisible bidirectional and zero-width characters are removed; the instructions tell the model to treat that content strictly as data; output must match the schema; and nothing the model returns is rendered as HTML.
 - **What is not sent.** Names, email addresses, account IDs and IP addresses are never sent to an AI provider.
@@ -111,9 +125,9 @@ Supabase: Auth (email + password, Google) and Postgres
 - **SSRF protection.** Only `http`/`https` on ports 80 and 443; no credentials in URLs; local, internal and single-label host names are refused; literal and resolved IP addresses are checked against private, loopback, link-local (including cloud metadata `169.254.169.254`), CGNAT, multicast, reserved and documentation ranges for IPv4 and IPv6 (including IPv4-mapped, NAT64 and 6to4 forms). The DNS check runs inside the socket's `lookup`, so DNS rebinding cannot bypass it, and every redirect is re-validated.
 - **Resource limits.** 9 s fetch timeout, 5 redirects, 3 MB decompressed body cap (zip-bomb safe), HTML and plain text only.
 - **Secrets stay on the server.** API keys are read only in `server-only` modules; the browser bundle contains only the Supabase URL and publishable key, which are public by design and protected by RLS.
-- **Headers.** Nonce-based Content-Security-Policy with `strict-dynamic`, `frame-ancestors 'none'`, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and `Cross-Origin-Opener-Policy`.
+- **Headers.** Content-Security-Policy (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`, `connect-src` limited to the app and Supabase), HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and `Cross-Origin-Opener-Policy`. The first version used a per-request nonce; that forced every page to render on the server and made navigation slow (1.2–8 s), so pages are now static and the CSP allows inline scripts, which Next.js needs for static pages. User content is never rendered as HTML, which is the main XSS defence.
 - **Input validation.** Every API body is size-limited and parsed with zod; POST routes reject cross-origin requests.
-- **Rate limits.** Summaries 6/min and 60/day per user or hashed IP; Tara 10/min; tickets 3/hour per IP and 5/day per email.
+- **Rate limits.** Summaries 6/min and 60/day per user or hashed IP; questions about a page 10/min; rewrites 10/min; Tara 10/min; tickets 3/hour per IP and 5/day per email.
 - **Privacy.** Raw IP addresses are never stored, only a salted SHA-256 hash.
 - **Database.** Row-level security on every table. Users can read and delete only their own rows; tickets, consents and rate limits are written only by the server.
 
@@ -153,6 +167,8 @@ src/
     api/tickets        support tickets
     api/consent        Terms acceptance records
     api/summaries      saved history (owner only)
+    api/ask            questions about a page
+    api/rewrite        simpler, shorter or translated summaries
     api/account        data export and account deletion
   components/          UI (summariser, Tara, ticket form, legal, auth)
   lib/
@@ -168,7 +184,8 @@ tests/                 unit and end-to-end tests
 
 - Pages that render their text with JavaScript, sit behind a login or paywall, or are PDFs can't be summarised yet.
 - Very long pages are summarised from their first ~16,000 characters (Lumen says so on the result).
-- Next: PDF support, summaries in Indian languages, a browser extension, and shareable summary links.
+- Netlify adds a promotional HTML comment to every page on free sites; the layout avoids explicit `<head>` children so this can't break React hydration.
+- Next: PDF support, a browser extension, saved shareable summary pages, and team workspaces.
 
 ## Credits
 

@@ -364,3 +364,22 @@
 .tour-spot {
   animation: pulse-ring 1.6s ease-out infinite;
 }
+
+/* Floating UI stays clear of a host's badge (see HostBadgeOffset). */
+.host-offset-bottom {
+  bottom: calc(1.25rem + var(--host-badge, 0px));
+}
+.host-offset-toast {
+  bottom: calc(1.5rem + var(--host-badge, 0px));
+}
+@media (min-width: 640px) {
+  .tara-panel {
+    bottom: calc(1.25rem + var(--host-badge, 0px));
+    height: min(640px, calc(100dvh - 40px - var(--host-badge, 0px)));
+  }
+}
+@media (max-width: 639px) {
+  .tara-panel-form {
+    padding-bottom: calc(0.75rem + var(--host-badge, 0px));
+  }
+}
