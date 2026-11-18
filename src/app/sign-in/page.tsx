@@ -1,7 +1,7 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { accountsEnabled, googleAuthEnabled, supabaseBrowser } from "@/lib/client/supabase-browser";
 import { AccountsUnavailable, AuthShell, GoogleIcon, authErrorMessage } from "@/components/auth/auth-shell";
@@ -10,7 +10,6 @@ import { useAuth, useToast } from "@/components/providers";
 
 function SignInForm() {
   const router = useRouter();
-  const params = useSearchParams();
   const toast = useToast();
   const { user } = useAuth();
   const [email, setEmail] = useState("");
@@ -21,9 +20,9 @@ function SignInForm() {
   const [needsVerify, setNeedsVerify] = useState(false);
 
   useEffect(() => {
-    const e = params.get("error");
+    const e = new URLSearchParams(window.location.search).get("error");
     if (e === "link") setError("That link has expired or was already used. Sign in, or request a new link.");
-  }, [params]);
+  }, []);
 
   useEffect(() => {
     if (user) router.replace("/");

@@ -20,8 +20,16 @@ export default function AccountPage() {
 
   if (loading || !user) {
     return (
-      <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-20 text-sm text-ink-3" role="status">
-        <Spinner /> Loading…
+      <div className="mx-auto max-w-2xl px-4 pt-12 sm:px-6" aria-busy="true" aria-label="Loading account">
+        <div className="skeleton h-8 w-40" />
+        <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
+          <div className="skeleton h-5 w-24" />
+          <div className="mt-5 space-y-3">
+            <div className="skeleton h-4 w-2/3" />
+            <div className="skeleton h-4 w-1/2" />
+            <div className="skeleton h-4 w-3/5" />
+          </div>
+        </div>
       </div>
     );
   }

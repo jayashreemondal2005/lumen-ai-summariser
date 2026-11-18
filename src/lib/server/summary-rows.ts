@@ -28,6 +28,8 @@ export function rowToResult(r: Row): SummaryResult {
     readingMinutes: Number(r.reading_minutes) || 1,
     truncated: Boolean(r.truncated),
     length: (["brief", "standard", "detailed"].includes(length) ? length : "standard") as SummaryResult["length"],
+    language: (str(r.language, "en") || "en") as SummaryResult["language"],
+    style: (["neutral", "simple", "executive"].includes(str(r.style)) ? str(r.style) : "neutral") as SummaryResult["style"],
     model: str(r.model),
     createdAt: str(r.created_at),
     saved: true,

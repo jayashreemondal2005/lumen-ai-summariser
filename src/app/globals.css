@@ -292,3 +292,75 @@
 .animate-rise {
   animation: rise 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+
+/* ------------------------------------------------------------------ */
+/* Preferences applied from Settings                                   */
+/* ------------------------------------------------------------------ */
+
+:root[data-text="large"] .reading {
+  font-size: 19px;
+  line-height: 1.75;
+}
+:root[data-text="large"] .reading-ui {
+  font-size: 16.5px;
+}
+
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Instant press feedback on every interactive control. */
+@layer components {
+  .press {
+    transition:
+      transform 120ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      background-color 150ms,
+      border-color 150ms,
+      color 150ms,
+      box-shadow 150ms;
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .surface-glow {
+    background:
+      radial-gradient(1200px 400px at 50% -120px, color-mix(in srgb, var(--primary) 9%, transparent), transparent 70%),
+      var(--bg);
+  }
+
+  .hairline-gradient {
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 45%, transparent), color-mix(in srgb, var(--accent) 45%, transparent), transparent);
+    height: 1px;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-pop {
+  animation: pop 0.18s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+.tour-spot {
+  animation: pulse-ring 1.6s ease-out infinite;
+}

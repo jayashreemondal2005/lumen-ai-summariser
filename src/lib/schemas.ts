@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LIMITS, SUMMARY_LENGTHS } from "./config";
+import { LANGUAGE_CODES, LIMITS, STYLES, SUMMARY_LENGTHS } from "./config";
 
 /* ------------------------------------------------------------------ */
 /* Requests                                                            */
@@ -8,6 +8,10 @@ import { LIMITS, SUMMARY_LENGTHS } from "./config";
 export const SummariseRequestSchema = z.object({
   url: z.string().trim().min(1, "Enter a web address.").max(LIMITS.urlMaxLength, "That address is too long."),
   length: z.enum(SUMMARY_LENGTHS).default("standard"),
+  language: z.enum(LANGUAGE_CODES).default("en"),
+  style: z.enum(STYLES).default("neutral"),
+  /** Signed-in users can turn off saving to their account. */
+  save: z.boolean().default(true),
 });
 export type SummariseRequest = z.infer<typeof SummariseRequestSchema>;
 
@@ -103,6 +107,8 @@ export const SummaryResultSchema = SummaryContentSchema.extend({
   readingMinutes: z.number(),
   truncated: z.boolean(),
   length: z.enum(SUMMARY_LENGTHS),
+  language: z.enum(LANGUAGE_CODES).catch("en"),
+  style: z.enum(STYLES).catch("neutral"),
   model: z.string(),
   createdAt: z.string(),
   saved: z.boolean(),
@@ -160,4 +166,50 @@ export const ConsentRequestSchema = z.object({
   document: z.enum(["terms"]),
   version: z.string().min(1).max(20),
   anonId: z.string().uuid().optional(),
+});
+
+/* ------------------------------------------------------------------ */
+/* Ask about this page, and rewrite a summary                          */
+/* ------------------------------------------------------------------ */
+
+export const AskRequestSchema = z.object({
+  url: z.string().trim().min(1).max(LIMITS.urlMaxLength),
+  question: z.string().trim().min(2, "Ask a question.").max(400, "Please keep questions under 400 characters."),
+  language: z.enum(LANGUAGE_CODES).default("en"),
+  history: z
+    .array(z.object({ q: z.string().max(400), a: z.string().max(1500) }))
+    .max(4)
+    .default([]),
+});
+
+export const AskAnswerSchema = z.object({
+  answer: z.string().describe("The answer, using only the page text. Plain text, 1 to 5 sentences."),
+  quotes: z
+    .array(z.string())
+    .describe("Up to 3 short passages copied word for word from the page that support the answer."),
+  answerable: z.boolean().describe("false if the page does not contain the answer."),
+});
+export type AskAnswer = z.infer<typeof AskAnswerSchema>;
+
+export const REWRITE_MODES = ["simpler", "shorter", "translate"] as const;
+export type RewriteMode = (typeof REWRITE_MODES)[number];
+
+export const RewriteRequestSchema = z.object({
+  mode: z.enum(REWRITE_MODES),
+  language: z.enum(LANGUAGE_CODES).default("en"),
+  content: z.object({
+    title: z.string().max(300),
+    tldr: z.string().max(600),
+    summary: z.string().max(4000),
+    keyPoints: z.array(z.string().max(400)).max(8),
+    topics: z.array(z.string().max(40)).max(6),
+  }),
+});
+
+export const RewriteOutputSchema = z.object({
+  title: z.string(),
+  tldr: z.string(),
+  summary: z.string(),
+  keyPoints: z.array(z.string()),
+  topics: z.array(z.string()),
 });

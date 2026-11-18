@@ -33,6 +33,7 @@ export const cookies: LegalDocument = {
             "lumen.theme: remembers light or dark mode, if you choose one.",
             "lumen.consent.v1: remembers which version of the Terms you accepted, and a random identifier used for the consent record.",
             "lumen.history.v1: your guest summary history (guest mode only). It never leaves your browser.",
+            "lumen.prefs.v1: your settings (default length, language and style, text size, avatar, whether the tour was completed).",
             "lumen.summariser.v1 and lumen.tara.v1 (session storage): your last chosen summary length and your current Ask Tara conversation. Cleared when you close the tab.",
           ],
         },

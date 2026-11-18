@@ -48,7 +48,7 @@ export const privacy: LegalDocument = {
         { h3: "Technical and security data" },
         "Salted hashes of IP addresses used for rate limiting, and short-lived server logs (request time, route, status code and error type) kept by our hosting provider. We do not log the content of your summaries.",
         { h3: "Data stored only on your device" },
-        "Your theme preference, your Terms acceptance status, guest summary history and your Ask Tara conversation are kept in your browser's local or session storage. See the Cookie Policy.",
+        "Your theme and other settings (including your chosen avatar), your Terms acceptance status, guest summary history and your Ask Tara conversation are kept in your browser's local or session storage. See the Cookie Policy.",
       ],
     },
     {
@@ -73,6 +73,7 @@ export const privacy: LegalDocument = {
       title: "5. How AI processing works",
       body: [
         "To create a summary, our server sends the readable text of the web page you submitted, its URL and title, and the summary length you chose, to our AI provider. We do not include your name, email, account ID or IP address.",
+        "When you ask a question about a page, the page text and your question are sent the same way. When you rewrite a summary (simpler, shorter or translated), only the summary text is sent.",
         "Our primary AI provider is Groq, Inc. (United States). If it is unavailable, we may use Google's Gemini API (Google LLC). Ask Tara sends your question and the relevant Help Center articles to the same providers. These providers process the data under their API terms in order to return a response.",
         "Please don't submit URLs to pages that contain your own sensitive personal data, such as private documents shared by link.",
       ],

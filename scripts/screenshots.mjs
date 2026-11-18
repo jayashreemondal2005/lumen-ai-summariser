@@ -58,6 +58,8 @@ const shots = [
   { name: "history-empty", path: "/history", vp: [1280, 800], scheme: "dark" },
   { name: "notfound", path: "/nope", vp: [1280, 800], scheme: "light" },
   { name: "signin", path: "/sign-in", vp: [1280, 800], scheme: "light" },
+  { name: "settings", path: "/settings", vp: [1280, 2200], scheme: "light" },
+  { name: "tour-step1", path: "/", vp: [1280, 860], scheme: "light", tour: true },
 ];
 
 const browser = await chromium.launch();
@@ -75,6 +77,11 @@ for (const s of shots) {
     await page.addInitScript(() => {
       localStorage.setItem("lumen.consent.v1", JSON.stringify({ state: { anonId: "11111111-1111-4111-8111-111111111111", termsVersion: "1.0.0", acceptedAt: new Date().toISOString() }, version: 0 }));
       localStorage.setItem("lumen.consent.synced.11111111-1111-4111-8111-111111111111:1.0.0", "1");
+    });
+  }
+  if (!s.tour) {
+    await page.addInitScript(() => {
+      localStorage.setItem("lumen.prefs.v1", JSON.stringify({ state: { tourDone: true, defaultLength: "standard", language: "en", style: "neutral", textSize: "default", reduceMotion: false, saveHistory: true, autoScroll: true, avatar: { emoji: "🪷", color: "teal" } }, version: 0 }));
     });
   }
   if (s.result || s.loading || s.error) {
@@ -104,11 +111,16 @@ for (const s of shots) {
       await page.waitForTimeout(60);
     } else await page.waitForTimeout(700);
   }
+  if (s.tour) {
+    await page.waitForTimeout(1300);
+    await page.getByRole("button", { name: "Show me" }).click();
+    await page.waitForTimeout(400);
+  }
   if (s.tara) {
     await page.getByRole("button", { name: /Ask Tara, the Lumen/ }).click();
     await page.waitForTimeout(400);
   }
-  await page.screenshot({ path: `${out}/${s.name}.png`, fullPage: !s.terms && !s.tara && !s.loading });
+  await page.screenshot({ path: `${out}/${s.name}.png`, fullPage: !s.terms && !s.tara && !s.loading && !s.tour });
   console.log("shot", s.name);
   await ctx.close();
 }

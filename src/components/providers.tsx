@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { User } from "@supabase/supabase-js";
 import { supabaseBrowser } from "@/lib/client/supabase-browser";
 import { LEGAL_VERSIONS } from "@/lib/config";
-import { useConsent } from "@/lib/client/stores";
+import { useConsent, usePrefs } from "@/lib/client/stores";
 import { TermsGate } from "./terms-gate";
 
 /* ------------------------------------------------------------------ */
@@ -147,12 +147,30 @@ function ConsentSync() {
   return null;
 }
 
+/* ------------------------------------------------------------------ */
+/* Preferences: reading size and motion are applied to <html>          */
+/* ------------------------------------------------------------------ */
+
+function PrefsSync() {
+  const textSize = usePrefs((s) => s.textSize);
+  const reduceMotion = usePrefs((s) => s.reduceMotion);
+  useEffect(() => {
+    const el = document.documentElement;
+    if (textSize === "large") el.dataset.text = "large";
+    else delete el.dataset.text;
+    if (reduceMotion) el.dataset.motion = "reduce";
+    else delete el.dataset.motion;
+  }, [textSize, reduceMotion]);
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <ToastProvider>
         {children}
         <ConsentSync />
+        <PrefsSync />
         <TermsGate />
       </ToastProvider>
     </AuthProvider>

@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
 import { Instrument_Sans, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE, OPERATOR_NAME, siteUrl } from "@/lib/config";
@@ -60,12 +59,11 @@ export const viewport: Viewport = {
 // Applies the saved theme before first paint, so there's no flash.
 const themeScript = `(function(){try{var t=localStorage.getItem("lumen.theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}})();`;
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={`${ui.variable} ${read.variable}`} suppressHydrationWarning>
       <head>
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-dvh flex flex-col bg-bg text-ink antialiased">
         <a

@@ -23,7 +23,8 @@ function TaraAvatar({ size = 32, className = "" }: { size?: number; className?: 
       alt=""
       width={size}
       height={size}
-      className={`shrink-0 rounded-full ring-1 ring-line ${className}`}
+      className={`shrink-0 self-start rounded-full object-cover ring-1 ring-line ${className}`}
+      style={{ width: size, height: size }}
       decoding="async"
     />
   );
@@ -131,8 +132,9 @@ export function TaraWidget() {
         <button
           ref={launcherRef}
           type="button"
+          data-tour="tara"
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-50 inline-flex items-center gap-2.5 rounded-full border border-line bg-surface py-1.5 pl-1.5 pr-4 text-sm font-medium text-ink shadow-pop transition-transform hover:-translate-y-0.5"
+          className="press fixed bottom-5 right-5 z-50 inline-flex items-center gap-2.5 rounded-full border border-line bg-surface py-1.5 pl-1.5 pr-4 text-sm font-medium text-ink shadow-pop hover:-translate-y-0.5"
           aria-label="Ask Tara, the Lumen help assistant"
         >
           <TaraAvatar size={34} />

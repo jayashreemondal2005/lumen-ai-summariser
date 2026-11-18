@@ -1,7 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { SummaryLength } from "../config";
+import type { LanguageCode, SummaryLength, SummaryStyle } from "../config";
 import { LEGAL_VERSIONS } from "../config";
 import type { SummariseEvent, SummariseStage, SummaryResult } from "../schemas";
 
@@ -50,6 +50,61 @@ export const useConsent = create<ConsentState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ anonId: s.anonId, termsVersion: s.termsVersion, acceptedAt: s.acceptedAt }),
     },
+  ),
+);
+
+/* ------------------------------------------------------------------ */
+/* Preferences (this browser)                                          */
+/* ------------------------------------------------------------------ */
+
+export const AVATAR_EMOJIS = ["🦊", "🐼", "🦉", "🐯", "🐬", "🦋", "🌸", "🪷", "🌙", "⭐", "🍀", "🔥", "🎧", "📚", "☕", "🚀", "🎨", "🧠"] as const;
+export const AVATAR_COLORS = [
+  { id: "cobalt", bg: "#E3E9FD", ring: "#2F5BEA" },
+  { id: "teal", bg: "#DDF4F1", ring: "#12B5A6" },
+  { id: "rose", bg: "#FCE4EA", ring: "#D6336C" },
+  { id: "amber", bg: "#FFF0D6", ring: "#C77700" },
+  { id: "violet", bg: "#ECE5FD", ring: "#6E48E0" },
+  { id: "slate", bg: "#E7EAEF", ring: "#4A5568" },
+] as const;
+export type AvatarColor = (typeof AVATAR_COLORS)[number]["id"];
+
+export interface Prefs {
+  defaultLength: SummaryLength;
+  language: LanguageCode;
+  style: SummaryStyle;
+  textSize: "default" | "large";
+  reduceMotion: boolean;
+  saveHistory: boolean;
+  autoScroll: boolean;
+  avatar: { emoji: string; color: AvatarColor } | null;
+  tourDone: boolean;
+}
+
+interface PrefsState extends Prefs {
+  set: (p: Partial<Prefs>) => void;
+  reset: () => void;
+}
+
+const DEFAULT_PREFS: Prefs = {
+  defaultLength: "standard",
+  language: "en",
+  style: "neutral",
+  textSize: "default",
+  reduceMotion: false,
+  saveHistory: true,
+  autoScroll: true,
+  avatar: null,
+  tourDone: false,
+};
+
+export const usePrefs = create<PrefsState>()(
+  persist(
+    (set) => ({
+      ...DEFAULT_PREFS,
+      set: (p) => set(p),
+      reset: () => set({ ...DEFAULT_PREFS, tourDone: true }),
+    }),
+    { name: "lumen.prefs.v1", storage: createJSONStorage(() => localStorage) },
   ),
 );
 
@@ -104,7 +159,7 @@ interface SummariserState {
   controller: AbortController | null;
   setUrl: (url: string) => void;
   setLength: (l: SummaryLength) => void;
-  run: (opts: { url: string; length: SummaryLength; signedIn: boolean }) => Promise<void>;
+  run: (opts: { url: string; length: SummaryLength; signedIn: boolean; language?: LanguageCode; style?: SummaryStyle; save?: boolean }) => Promise<void>;
   cancel: () => void;
   reset: () => void;
   show: (r: SummaryResult) => void;
@@ -132,7 +187,7 @@ export const useSummariser = create<SummariserState>()(
         set({ status: "idle", stage: null, completed: [], result: null, error: null, controller: null, url: "" });
       },
       show: (r) => set({ status: "success", result: r, error: null, stage: null, url: r.url }),
-      run: async ({ url, length, signedIn }): Promise<void> => {
+      run: async ({ url, length, signedIn, language = "en", style = "neutral", save = true }): Promise<void> => {
         get().controller?.abort();
         const controller = new AbortController();
         set({ status: "loading", stage: "validating", completed: [], error: null, result: null, controller });
@@ -146,7 +201,7 @@ export const useSummariser = create<SummariserState>()(
           res = await fetch("/api/summarise", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url, length }),
+            body: JSON.stringify({ url, length, language, style, save }),
             signal: controller.signal,
           });
         } catch (err) {
@@ -192,7 +247,7 @@ export const useSummariser = create<SummariserState>()(
               } else if (evt.type === "result") {
                 finished = true;
                 set({ status: "success", result: evt.data, stage: null, completed: [], controller: null });
-                if (!signedIn) useGuestHistory.getState().add(evt.data);
+                if (!signedIn && save) useGuestHistory.getState().add(evt.data);
               } else if (evt.type === "error") {
                 finished = true;
                 fail({ code: evt.code, message: evt.message, retryable: evt.retryable });

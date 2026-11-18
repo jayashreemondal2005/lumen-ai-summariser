@@ -5,6 +5,7 @@ import { normaliseUserUrl, UrlGuardError } from "@/lib/server/url-guard";
 import { FetchPageError, safeFetchPage } from "@/lib/server/safe-fetch";
 import { ExtractError, extractReadable } from "@/lib/server/extract";
 import { summarisePage } from "@/lib/server/summarise";
+import { rememberPage } from "@/lib/server/page-cache";
 import { AiNotConfiguredError, AiUnavailableError, aiConfigured } from "@/lib/server/ai";
 import { rateLimitAll } from "@/lib/server/rate-limit";
 import { apiError, clientIp, hashIp, readJson, sameOrigin } from "@/lib/server/request";
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
   }
   if (!aiConfigured()) return apiError(503, "AI_NOT_CONFIGURED", "Summaries are temporarily unavailable.");
 
-  const { length } = parsed.data;
+  const { length, language, style, save } = parsed.data;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
@@ -78,12 +79,13 @@ export async function POST(req: Request) {
         const extracted = extractReadable(page.html, page.finalUrl, page.contentType);
 
         send({ type: "stage", stage: "summarising" });
-        const { content, model } = await summarisePage(extracted, page.finalUrl, length);
+        rememberPage(url, page.finalUrl, extracted);
+        const { content, model } = await summarisePage(extracted, page.finalUrl, length, language, style);
 
         let id: string = randomUUID();
         let createdAt = new Date().toISOString();
         let saved = false;
-        if (session) {
+        if (session && save) {
           send({ type: "stage", stage: "saving" });
           const { data, error } = await session.client
             .from("summaries")
@@ -101,6 +103,8 @@ export async function POST(req: Request) {
               quality: content.quality,
               injection_detected: content.injectionDetected,
               length,
+              language,
+              style,
               word_count: extracted.wordCount,
               reading_minutes: extracted.readingMinutes,
               byline: extracted.byline,
@@ -133,6 +137,8 @@ export async function POST(req: Request) {
           readingMinutes: extracted.readingMinutes,
           truncated: extracted.truncated,
           length,
+          language,
+          style,
           model,
           createdAt,
           saved,

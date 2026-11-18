@@ -113,6 +113,77 @@ If a summary is wrong, please raise a support ticket with the topic "Summary qua
 - "Hidden instructions ignored": the page contained text that tried to give orders to AI tools. Lumen ignored it and summarised the rest.`,
   },
   {
+    id: "languages-styles",
+    slug: "languages-and-writing-styles",
+    category: "summaries",
+    title: "Summaries in your language and style",
+    summary: "Choose from 16 languages and three writing styles.",
+    keywords: ["language", "languages", "hindi", "bengali", "bangla", "tamil", "telugu", "translate", "translation", "style", "simple", "executive", "balanced", "tone"],
+    body: `Under the link box you can pick:
+
+- Language: English, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Urdu, Spanish, French, German, Japanese or Arabic. The page itself can be in any language.
+- Style: Balanced (clear and neutral), Simple (plain words and short sentences) or Executive (numbers, decisions and impact first).
+
+Set your favourites as defaults in Settings, under Summaries.`,
+  },
+  {
+    id: "ask-page",
+    slug: "ask-about-this-page",
+    category: "summaries",
+    title: "Ask questions about a page",
+    summary: "Follow-up questions answered only from the page, with supporting quotes.",
+    keywords: ["ask", "question", "questions", "follow up", "chat", "quote", "quotes", "evidence", "source", "passage"],
+    body: `Below every summary there's an "Ask about this page" box. Type a question, or pick a suggestion.
+
+Lumen answers using only the text of that page. It also shows up to three short passages from the page that support the answer, and Lumen checks that each one really appears on the page.
+
+If the page doesn't contain the answer, Lumen says so instead of guessing.`,
+  },
+  {
+    id: "ai-tools",
+    slug: "listen-rewrite-and-share",
+    category: "summaries",
+    title: "Listen, rewrite and share a summary",
+    summary: "Read-aloud, one-tap rewrites, copy, Markdown and sharing.",
+    keywords: ["listen", "read aloud", "audio", "voice", "speak", "rewrite", "simpler", "shorter", "share", "copy", "markdown", "download"],
+    body: `Every summary has tools at the top and under the key points:
+
+- Listen: your browser reads the summary aloud. Nothing extra is sent anywhere.
+- Simpler, Shorter or Translate: rewrites the summary without re-reading the page. Select "Show original" to go back.
+- Copy, Markdown and Share: copy the text, download a .md file, or share a link that opens Lumen with the page address filled in.`,
+  },
+  {
+    id: "settings",
+    slug: "settings-and-avatar",
+    category: "account",
+    title: "Settings, avatar and preferences",
+    summary: "Personalise Lumen and control your data.",
+    keywords: ["settings", "preferences", "avatar", "emoji", "profile", "picture", "name", "theme", "dark mode", "text size", "default", "animations"],
+    body: `Open Settings from your avatar in the top-right corner. You can:
+
+- choose an emoji avatar and colour, and (when signed in) your display name;
+- switch between system, light and dark themes, make reading text larger, or reduce animations;
+- set your default summary length, language and style;
+- turn history saving on or off, export guest history, or clear Lumen's data from this browser;
+- replay the product tour and see keyboard shortcuts.`,
+  },
+  {
+    id: "tour-shortcuts",
+    slug: "tour-and-shortcuts",
+    category: "getting-started",
+    title: "Product tour and keyboard shortcuts",
+    summary: "Replay the tour any time; use / to jump to the link box.",
+    keywords: ["tour", "walkthrough", "onboarding", "guide", "shortcut", "shortcuts", "keyboard", "slash"],
+    body: `The first time you open Lumen, a short tour shows you around. You can skip it, and replay it from Settings or the avatar menu ("Take the tour").
+
+Keyboard shortcuts:
+
+- / focuses the link box
+- Enter starts the summary
+- Esc closes dialogs and Tara
+- Left and right arrows change the summary length`,
+  },
+  {
     id: "page-failed",
     slug: "why-a-page-wont-summarise",
     category: "troubleshooting",
@@ -152,6 +223,8 @@ Tip: many sites publish the same content as a web page. Look for an "HTML" or "R
 
 - 6 summaries per minute
 - 60 summaries per day
+- 10 questions about a page per minute
+- 10 rewrites per minute
 
 If you reach a limit, Lumen tells you how long to wait. Pages are also limited to about 3 MB, and very long text is shortened before it's sent to the AI.`,
   },

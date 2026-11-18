@@ -2,13 +2,13 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Cloud, HardDrive, Search, Trash2 } from "lucide-react";
+import { BookOpenText, Clock3, Cloud, HardDrive, Layers, Search, Trash2 } from "lucide-react";
 import type { SummaryResult } from "@/lib/schemas";
 import { useGuestHistory, useSummariser } from "@/lib/client/stores";
 import { formatDate, hostOf } from "@/lib/client/format";
 import { accountsEnabled } from "@/lib/client/supabase-browser";
 import { useAuth, useToast } from "../providers";
-import { Button, ButtonLink, Spinner } from "../ui";
+import { Button, ButtonLink } from "../ui";
 
 export function HistoryList() {
   const { user, loading: authLoading } = useAuth();
@@ -124,10 +124,10 @@ export function HistoryList() {
         </div>
       ) : null}
 
+      {!loading && items && items.length ? <Stats items={items} /> : null}
+
       {loading ? (
-        <div className="flex items-center gap-2 py-16 text-sm text-ink-3" role="status">
-          <Spinner /> Loading your history…
-        </div>
+        <HistorySkeleton />
       ) : error ? (
         <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">
           {error}
@@ -167,6 +167,56 @@ export function HistoryList() {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+function Stats({ items }: { items: SummaryResult[] }) {
+  const words = items.reduce((n, i) => n + (i.wordCount || 0), 0);
+  const read = items.reduce((n, i) => n + (i.readingMinutes || 1), 0);
+  // Reading a summary takes about a minute; the rest is time saved.
+  const saved = Math.max(0, read - items.length);
+  const fmt = (n: number) => n.toLocaleString("en-IN");
+  const stats = [
+    { icon: Layers, label: "Summaries", value: fmt(items.length) },
+    { icon: BookOpenText, label: "Words read for you", value: fmt(words) },
+    { icon: Clock3, label: "Reading time saved", value: saved >= 60 ? `${Math.floor(saved / 60)} h ${saved % 60} min` : `${saved} min` },
+  ];
+  return (
+    <ul className="mb-6 grid grid-cols-3 gap-3" aria-label="Your reading stats">
+      {stats.map((s) => (
+        <li key={s.label} className="rounded-2xl border border-line bg-surface p-4 shadow-hair">
+          <s.icon className="size-4 text-primary-ink" aria-hidden />
+          <p className="mt-2 text-[20px] font-semibold tracking-[-0.01em] text-ink">{s.value}</p>
+          <p className="text-[12px] text-ink-3">{s.label}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function HistorySkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading your history">
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="rounded-2xl border border-line bg-surface p-4">
+            <div className="skeleton size-4" />
+            <div className="skeleton mt-3 h-5 w-16" />
+            <div className="skeleton mt-2 h-3 w-24" />
+          </div>
+        ))}
+      </div>
+      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+        {[0, 1, 2, 3].map((i) => (
+          <li key={i} className="px-5 py-4">
+            <div className="skeleton h-4 w-2/3" />
+            <div className="skeleton mt-2 h-3 w-1/3" />
+            <div className="skeleton mt-3 h-3 w-full" />
+            <div className="skeleton mt-1.5 h-3 w-4/5" />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
