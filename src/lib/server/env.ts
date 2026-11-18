@@ -10,8 +10,10 @@ const EnvSchema = z.object({
   GEMINI_API_KEY: z.string().optional().default(""),
   GEMINI_MODEL: z.string().optional().default(""),
   NEXT_PUBLIC_SUPABASE_URL: z.string().optional().default(""),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(""),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional().default(""),
+  /** Publishable key (sb_publishable_...) or legacy anon key. Public by design. */
+  SUPABASE_PUBLISHABLE_KEY: z.string().optional().default(""),
+  /** Secret key (sb_secret_...) or legacy service_role key. Server only. */
+  SUPABASE_SECRET_KEY: z.string().optional().default(""),
   SMTP_USER: z.string().optional().default(""),
   SMTP_PASS: z.string().optional().default(""),
   SMTP_HOST: z.string().optional().default("smtp.gmail.com"),
@@ -33,8 +35,8 @@ export function serverEnv(): ServerEnv {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY,
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASS: process.env.SMTP_PASS,
     SMTP_HOST: process.env.SMTP_HOST || undefined,
@@ -48,12 +50,12 @@ export function serverEnv(): ServerEnv {
 
 export function supabaseConfigured(): boolean {
   const e = serverEnv();
-  return Boolean(e.NEXT_PUBLIC_SUPABASE_URL && e.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(e.NEXT_PUBLIC_SUPABASE_URL && e.SUPABASE_PUBLISHABLE_KEY);
 }
 
 export function supabaseAdminConfigured(): boolean {
   const e = serverEnv();
-  return Boolean(e.NEXT_PUBLIC_SUPABASE_URL && e.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(e.NEXT_PUBLIC_SUPABASE_URL && e.SUPABASE_SECRET_KEY);
 }
 
 export function mailConfigured(): boolean {

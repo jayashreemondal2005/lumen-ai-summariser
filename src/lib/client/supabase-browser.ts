@@ -8,13 +8,15 @@ let client: SupabaseClient | null | undefined;
 export function supabaseBrowser(): SupabaseClient | null {
   if (client !== undefined) return client;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Supabase's new publishable key; the legacy anon key name still works.
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   client = url && key ? createBrowserClient(url, key) : null;
   return client;
 }
 
 export const accountsEnabled = Boolean(
-  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
 );
 
 export const googleAuthEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH === "true";

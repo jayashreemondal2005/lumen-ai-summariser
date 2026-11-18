@@ -110,7 +110,7 @@ Supabase: Auth (email + password, Google) and Postgres
 
 - **SSRF protection.** Only `http`/`https` on ports 80 and 443; no credentials in URLs; local, internal and single-label host names are refused; literal and resolved IP addresses are checked against private, loopback, link-local (including cloud metadata `169.254.169.254`), CGNAT, multicast, reserved and documentation ranges for IPv4 and IPv6 (including IPv4-mapped, NAT64 and 6to4 forms). The DNS check runs inside the socket's `lookup`, so DNS rebinding cannot bypass it, and every redirect is re-validated.
 - **Resource limits.** 9 s fetch timeout, 5 redirects, 3 MB decompressed body cap (zip-bomb safe), HTML and plain text only.
-- **Secrets stay on the server.** API keys are read only in `server-only` modules; the browser bundle contains only the Supabase URL and anon key, which are public by design and protected by RLS.
+- **Secrets stay on the server.** API keys are read only in `server-only` modules; the browser bundle contains only the Supabase URL and publishable key, which are public by design and protected by RLS.
 - **Headers.** Nonce-based Content-Security-Policy with `strict-dynamic`, `frame-ancestors 'none'`, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and `Cross-Origin-Opener-Policy`.
 - **Input validation.** Every API body is size-limited and parsed with zod; POST routes reject cross-origin requests.
 - **Rate limits.** Summaries 6/min and 60/day per user or hashed IP; Tara 10/min; tickets 3/hour per IP and 5/day per email.

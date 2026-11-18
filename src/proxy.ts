@@ -46,7 +46,7 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const hasAuthCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
   if (url && key && hasAuthCookie) {
     const supabase = createServerClient(url, key, {

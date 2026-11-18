@@ -95,7 +95,7 @@ for (const s of shots) {
   }
   await page.goto(base + s.path, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
-  await page.addStyleTag({ content: "nextjs-portal{display:none!important}" });
+  await page.addStyleTag({ content: "nextjs-portal{display:none!important} body>header,header.sticky{position:static!important}" });
   if (s.result || s.loading || s.error || s.terms) {
     await page.getByLabel("Web page address").fill(s.result ? "paulgraham.com/greatwork.html" : "https://example.com/article");
     await page.getByRole("button", { name: /Summarise/ }).click();
