@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 80 352 352" role="img" aria-label="Lumen">
+  <defs>
+  <linearGradient id="lumen-g" x1="100" y1="90" x2="330" y2="420" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#2F5BEA"/>
+    <stop offset="0.5" stop-color="#2489E0"/>
+    <stop offset="1" stop-color="#12B5A6"/>
+  </linearGradient></defs>
+  <g fill="url(#lumen-g)">
+  <rect x="86" y="94" width="340" height="52" rx="26"/>
+  <rect x="125" y="170" width="262" height="42" rx="21"/>
+  <rect x="183" y="235" width="146" height="42" rx="21"/>
+  <path d="M256 295C270.5 316.5 301 345.5 301 373A45 45 0 1 1 211 373C211 345.5 241.5 316.5 256 295Z"/></g>
+</svg>
