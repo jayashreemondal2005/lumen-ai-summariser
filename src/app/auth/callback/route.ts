@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { supabaseAdmin, supabaseForRequest } from "@/lib/server/supabase";
 import { clientIp, hashIp } from "@/lib/server/request";
-import { LEGAL_VERSIONS } from "@/lib/config";
+import { LEGAL_VERSIONS, siteUrl } from "@/lib/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +23,9 @@ export async function GET(req: Request) {
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type") as EmailOtpType | null;
   const next = safeNext(url.searchParams.get("next"));
-  const origin = url.origin;
+  // Behind a CDN the request URL can be an internal deploy host, so redirect to
+  // the public site URL (where the session cookie was set).
+  const origin = process.env.NODE_ENV === "production" ? siteUrl() : url.origin;
 
   const supabase = await supabaseForRequest();
   if (!supabase) return NextResponse.redirect(`${origin}/sign-in?error=unavailable`);
