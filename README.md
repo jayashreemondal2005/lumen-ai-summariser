@@ -143,7 +143,7 @@ cp .env.example .env.local   # then fill in the values
 npm run dev                  # http://localhost:3000
 ```
 
-Database: open Supabase, **SQL Editor → New query**, paste [`supabase/migrations/20261118000000_lumen_schema.sql`](supabase/migrations/20261118000000_lumen_schema.sql) and run it.
+Database: open Supabase, **SQL Editor → New query**, and run the files in [`supabase/migrations/`](supabase/migrations) in order (`20261118000000_lumen_schema.sql`, then `20261118120000_language_style.sql`). Both are safe to run more than once.
 
 ```bash
 npm test          # unit tests

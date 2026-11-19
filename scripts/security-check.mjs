@@ -120,6 +120,19 @@ for (const [m, p] of [
   record("authz", `${m} ${p} without a session`, res.status === 401, String(res.status));
 }
 
+// 4b. Auth callback never redirects off-site (open-redirect) or to an internal host
+for (const q of ["", "?next=//evil.example", "?next=https://evil.example", "?next=/%5Cevil.example"]) {
+  const res = await fetch(`${base}/auth/callback${q}`, { redirect: "manual" });
+  const loc = res.headers.get("location") || "";
+  let host = "";
+  try {
+    host = new URL(loc, base).host;
+  } catch {
+    host = "";
+  }
+  record("authz", `auth/callback${q || " (no code)"} stays on the site`, res.status >= 300 && res.status < 400 && host === new URL(base).host, loc.slice(0, 70));
+}
+
 // 5. Client bundle contains no server secrets
 {
   const html = await (await fetch(base + "/")).text();
