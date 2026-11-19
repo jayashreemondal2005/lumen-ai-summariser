@@ -26,5 +26,3 @@ reports/raw/
 Thumbs.db
 *.log
 
-# local tooling
-.claude/

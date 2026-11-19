@@ -183,7 +183,7 @@ flowchart LR
 | Unit tests (Vitest): URL guard and SSRF, safe fetch against a real local server, extraction, AI output validation, prompt escaping, quote verification, ticket emails, Help Center retrieval | **132 / 132 passing** |
 | End-to-end (Playwright) **on the live site** with a real model: summary, rewrite, ask, Tara, tickets, tour, settings, legal, headers, bundle secrets, axe accessibility on 6 pages, mobile | **22 / 22 passing** |
 | Security check on the live site: headers, 27 SSRF probes, validation, CSRF, authorisation, open redirect, secrets in the bundle | **69 / 69 passing** |
-| Lighthouse, live (Performance · Accessibility · Best practices · SEO) | Home mobile 96 · 100 · 96 · 100 · Home desktop 99 · 100 · 96 · 100 |
+| Lighthouse, live (Performance · Accessibility · Best practices · SEO) | Home mobile 92 · 100 · 96 · 100 · Home desktop 98 · 100 · 96 · 100 · Help and Terms mobile 94 · 100 · 96 · 100 |
 | `npm audit --omit=dev` | 0 known vulnerabilities in production dependencies |
 
 Commands, per-test results and the full numbers are in [`docs/TESTING.md`](docs/TESTING.md).
