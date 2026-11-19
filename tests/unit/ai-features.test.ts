@@ -58,6 +58,7 @@ describe("Summary prompt: language and style", () => {
       expect(ins).toMatch(/untrusted DATA/);
     }
     expect(ASK_INSTRUCTIONS).toMatch(/answerable to false/);
+    expect(ASK_INSTRUCTIONS).toMatch(/<earlier_questions>/);
   });
 });
 

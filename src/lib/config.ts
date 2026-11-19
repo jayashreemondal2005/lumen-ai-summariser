@@ -36,6 +36,10 @@ export const LIMITS = {
   ticketsPerDayPerEmail: 5,
   askPerMinute: 10,
   rewritePerMinute: 10,
+  /** Daily caps per visitor for the AI helpers. */
+  askPerDay: 120,
+  rewritePerDay: 120,
+  taraPerDay: 150,
 } as const;
 
 export const SUMMARY_LENGTHS = ["brief", "standard", "detailed"] as const;

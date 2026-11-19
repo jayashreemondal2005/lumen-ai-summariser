@@ -74,6 +74,7 @@ export function SummaryView({ result, savedLabel }: { result: SummaryResult; sav
   const [busy, setBusy] = useState<RewriteMode | null>(null);
   const [translateTo, setTranslateTo] = useState<LanguageCode>(result.language === "en" ? "hi" : "en");
   const host = hostOf(result.finalUrl);
+  const originalHref = /^https?:\/\//i.test(result.finalUrl) ? result.finalUrl : undefined;
   const monogram = (result.siteName || host).trim().charAt(0).toUpperCase() || "L";
 
   const shown: Content = alt?.content ?? result;
@@ -174,7 +175,7 @@ export function SummaryView({ result, savedLabel }: { result: SummaryResult; sav
             <Download className="size-4" /> Markdown
           </ToolButton>
           {speech.supported ? (
-            <ToolButton onClick={listen} active={speech.speaking} label={speech.speaking ? "Stop reading aloud" : "Read aloud"}>
+            <ToolButton onClick={listen} active={speech.speaking} label={speech.speaking ? "Stop listening" : "Listen (read aloud)"}>
               {speech.speaking ? <Pause className="size-4" /> : <Volume2 className="size-4" />} {speech.speaking ? "Stop" : "Listen"}
             </ToolButton>
           ) : null}
@@ -182,7 +183,7 @@ export function SummaryView({ result, savedLabel }: { result: SummaryResult; sav
             <Share2 className="size-4" /> Share
           </ToolButton>
           <a
-            href={result.finalUrl}
+            href={originalHref}
             target="_blank"
             rel="noopener noreferrer nofollow"
             className="press inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"

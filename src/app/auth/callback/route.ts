@@ -49,7 +49,8 @@ export async function GET(req: Request) {
       user_id: user.id,
       document: "terms",
       version: user.user_metadata.terms_version,
-      accepted_at: user.user_metadata.terms_accepted_at ?? new Date().toISOString(),
+      // Server time: the client-supplied sign-up timestamp is not trusted as evidence.
+      accepted_at: new Date().toISOString(),
       ip_hash: hashIp(clientIp(req)),
       user_agent: (req.headers.get("user-agent") || "").slice(0, 300),
     });

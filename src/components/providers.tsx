@@ -29,10 +29,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return;
     }
-    sb.auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-      setLoading(false);
-    });
+    sb.auth
+      .getUser()
+      .then(({ data }) => setUser(data.user ?? null))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
     const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });

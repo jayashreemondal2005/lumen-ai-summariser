@@ -6,7 +6,7 @@ import { ExtractError } from "@/lib/server/extract";
 import { loadPage } from "@/lib/server/page-cache";
 import { askPage } from "@/lib/server/summarise";
 import { AiNotConfiguredError, AiUnavailableError } from "@/lib/server/ai";
-import { rateLimit } from "@/lib/server/rate-limit";
+import { rateLimitAll } from "@/lib/server/rate-limit";
 import { apiError, clientIp, hashIp, json, readJson, sameOrigin } from "@/lib/server/request";
 
 export const runtime = "nodejs";
@@ -32,7 +32,11 @@ export async function POST(req: Request) {
     return apiError(400, (err as UrlGuardError).code || "INVALID_URL", (err as Error).message);
   }
 
-  const limit = await rateLimit(`ask:m:${hashIp(clientIp(req))}`, 60, LIMITS.askPerMinute);
+  const who = hashIp(clientIp(req));
+  const limit = await rateLimitAll([
+    { key: `ask:m:${who}`, windowSec: 60, max: LIMITS.askPerMinute },
+    { key: `ask:d:${who}`, windowSec: 86_400, max: LIMITS.askPerDay },
+  ]);
   if (!limit.allowed) return apiError(429, "RATE_LIMITED", "You're asking quickly. Please wait a moment.", { retryAfter: limit.retryAfterSec });
 
   try {

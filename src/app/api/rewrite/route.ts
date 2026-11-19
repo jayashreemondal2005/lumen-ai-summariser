@@ -2,7 +2,7 @@ import { LIMITS } from "@/lib/config";
 import { RewriteRequestSchema } from "@/lib/schemas";
 import { rewriteSummary } from "@/lib/server/summarise";
 import { AiNotConfiguredError, AiUnavailableError } from "@/lib/server/ai";
-import { rateLimit } from "@/lib/server/rate-limit";
+import { rateLimitAll } from "@/lib/server/rate-limit";
 import { apiError, clientIp, hashIp, json, readJson, sameOrigin } from "@/lib/server/request";
 
 export const runtime = "nodejs";
@@ -21,7 +21,11 @@ export async function POST(req: Request) {
   const parsed = RewriteRequestSchema.safeParse(body);
   if (!parsed.success) return apiError(400, "BAD_REQUEST", "Invalid summary.");
 
-  const limit = await rateLimit(`rewrite:m:${hashIp(clientIp(req))}`, 60, LIMITS.rewritePerMinute);
+  const who = hashIp(clientIp(req));
+  const limit = await rateLimitAll([
+    { key: `rewrite:m:${who}`, windowSec: 60, max: LIMITS.rewritePerMinute },
+    { key: `rewrite:d:${who}`, windowSec: 86_400, max: LIMITS.rewritePerDay },
+  ]);
   if (!limit.allowed) return apiError(429, "RATE_LIMITED", "Please wait a moment before rewriting again.", { retryAfter: limit.retryAfterSec });
 
   try {

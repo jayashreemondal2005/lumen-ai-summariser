@@ -1,7 +1,7 @@
 import { LIMITS } from "@/lib/config";
 import { TaraRequestSchema } from "@/lib/schemas";
 import { askTara } from "@/lib/server/tara";
-import { rateLimit } from "@/lib/server/rate-limit";
+import { rateLimitAll } from "@/lib/server/rate-limit";
 import { apiError, clientIp, hashIp, json, readJson, sameOrigin } from "@/lib/server/request";
 
 export const runtime = "nodejs";
@@ -19,7 +19,11 @@ export async function POST(req: Request) {
   const parsed = TaraRequestSchema.safeParse(body);
   if (!parsed.success) return apiError(400, "BAD_REQUEST", "Please type a shorter question (up to 600 characters).");
 
-  const limit = await rateLimit(`tara:m:${hashIp(clientIp(req))}`, 60, LIMITS.taraPerMinute);
+  const who = hashIp(clientIp(req));
+  const limit = await rateLimitAll([
+    { key: `tara:m:${who}`, windowSec: 60, max: LIMITS.taraPerMinute },
+    { key: `tara:d:${who}`, windowSec: 86_400, max: LIMITS.taraPerDay },
+  ]);
   if (!limit.allowed) {
     return apiError(429, "RATE_LIMITED", "You're sending messages quickly. Please wait a moment and try again.", {
       retryAfter: limit.retryAfterSec,

@@ -70,7 +70,16 @@ export async function POST(req: Request) {
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const send = (e: SummariseEvent) => controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
+      let open = true;
+      const send = (e: SummariseEvent) => {
+        if (!open) return;
+        try {
+          controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
+        } catch {
+          open = false; // client went away
+        }
+      };
+      const gone = () => req.signal.aborted || !open;
       try {
         send({ type: "stage", stage: "fetching" });
         const page = await safeFetchPage(url, { timeoutMs: 9000 });
@@ -78,6 +87,7 @@ export async function POST(req: Request) {
         send({ type: "stage", stage: "extracting" });
         const extracted = extractReadable(page.html, page.finalUrl, page.contentType);
 
+        if (gone()) return; // don't spend AI tokens on a cancelled request
         send({ type: "stage", stage: "summarising" });
         rememberPage(url, page.finalUrl, extracted);
         const { content, model } = await summarisePage(extracted, page.finalUrl, length, language, style);
@@ -147,7 +157,12 @@ export async function POST(req: Request) {
       } catch (err) {
         send(toEvent(err));
       } finally {
-        controller.close();
+        open = false;
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       }
     },
   });

@@ -10,12 +10,17 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("system");
 
   useEffect(() => {
-    try {
-      const t = localStorage.getItem("lumen.theme");
-      if (t === "light" || t === "dark") setTheme(t);
-    } catch {
-      /* ignore */
-    }
+    const read = () => {
+      try {
+        const t = localStorage.getItem("lumen.theme");
+        setTheme(t === "light" || t === "dark" ? t : "system");
+      } catch {
+        /* ignore */
+      }
+    };
+    read();
+    window.addEventListener("lumen:theme", read);
+    return () => window.removeEventListener("lumen:theme", read);
   }, []);
 
   function cycle() {
@@ -33,6 +38,7 @@ export function ThemeToggle() {
       if (next === "system") delete document.documentElement.dataset.theme;
       else document.documentElement.dataset.theme = next;
     }
+    window.dispatchEvent(new Event("lumen:theme"));
   }
 
   const Icon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;

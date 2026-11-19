@@ -177,7 +177,7 @@ export function ProductTour() {
                 Skip tour
               </Button>
             ) : (
-              <Button size="sm" variant="ghost" onClick={() => setI(i - 1)} aria-label="Previous step">
+              <Button size="sm" variant="ghost" onClick={() => setI(i - 1)}>
                 <ArrowLeft className="size-3.5" /> Back
               </Button>
             )}

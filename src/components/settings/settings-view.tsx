@@ -89,11 +89,16 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: 
 function useTheme(): [string, (t: string) => void] {
   const [theme, setTheme] = useState("system");
   useEffect(() => {
-    try {
-      setTheme(localStorage.getItem("lumen.theme") || "system");
-    } catch {
-      /* ignore */
-    }
+    const read = () => {
+      try {
+        setTheme(localStorage.getItem("lumen.theme") || "system");
+      } catch {
+        /* ignore */
+      }
+    };
+    read();
+    window.addEventListener("lumen:theme", read);
+    return () => window.removeEventListener("lumen:theme", read);
   }, []);
   const apply = (t: string) => {
     setTheme(t);
@@ -105,6 +110,7 @@ function useTheme(): [string, (t: string) => void] {
     }
     if (t === "system") delete document.documentElement.dataset.theme;
     else document.documentElement.dataset.theme = t;
+    window.dispatchEvent(new Event("lumen:theme"));
   };
   return [theme, apply];
 }
